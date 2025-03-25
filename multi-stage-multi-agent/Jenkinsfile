@@ -24,17 +24,17 @@ pipeline {
             agent {
                 docker {
                     image 'mysql:latest'
-                    args '--name mysql-container -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=testdb -p 3306:3306'
+                    args '--network my-docker-network --name mysql-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=testdb'
                 }
             }
             steps {
                 script {
                     echo 'Waiting for MySQL to be ready...'
 
-                    // Wait for MySQL to be ready using retry loop
+                    // Wait for MySQL to be ready
                     sh '''
                         for i in {1..10}; do
-                            if mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; then
+                            if mysqladmin ping -h mysql-db -uroot -proot --silent; then
                                 echo "MySQL is up and running"
                                 break
                             fi
@@ -45,9 +45,17 @@ pipeline {
 
                     echo 'Verifying database connection...'
                     sh '''
-                        mysql -h 127.0.0.1 -uroot -proot -e "SHOW DATABASES;"
+                        mysql -h mysql-db -uroot -proot -e "SHOW DATABASES;"
                     '''
                 }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                sh 'docker network rm my-docker-network || true'
             }
         }
     }
