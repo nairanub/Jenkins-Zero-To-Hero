@@ -1,62 +1,21 @@
 pipeline {
-    agent none
-
-    stages {
-        stage('Back-end') {
-            agent {
-                docker { image 'maven:3.8.1-adoptopenjdk-11' }
-            }
-            steps {
-                sh 'mvn --version'
-            }
-        }
-
-        stage('Front-end') {
-            agent {
-                docker { image 'node:16-alpine' }
-            }
-            steps {
-                sh 'node --version'
-            }
-        }
-
-        stage('Database') {
-            agent {
-                docker {
-                    image 'mysql:latest'
-                    args '--network my-docker-network --name mysql-db -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=testdb'
-                }
-            }
-            steps {
-                script {
-                    echo 'Waiting for MySQL to be ready...'
-
-                    // Wait for MySQL to be ready
-                    sh '''
-                        for i in {1..10}; do
-                            if mysqladmin ping -h mysql-db -uroot -proot --silent; then
-                                echo "MySQL is up and running"
-                                break
-                            fi
-                            echo "Waiting for MySQL to be ready..."
-                            sleep 5
-                        done
-                    '''
-
-                    echo 'Verifying database connection...'
-                    sh '''
-                        mysql -h mysql-db -uroot -proot -e "SHOW DATABASES;"
-                    '''
-                }
-            }
-        }
+  agent none
+  stages {
+    stage('Back-end') {
+      agent {
+        docker { image 'maven:3.8.1-adoptopenjdk-11' }
+      }
+      steps {
+        sh 'mvn --version'
+      }
     }
-
-    post {
-        always {
-            script {
-                sh 'docker network rm my-docker-network || true'
-            }
-        }
+    stage('Front-end') {
+      agent {
+        docker { image 'node:16-alpine' }
+      }
+      steps {
+        sh 'node --version'
+      }
     }
+  }
 }
