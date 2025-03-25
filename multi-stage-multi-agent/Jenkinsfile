@@ -30,20 +30,26 @@ pipeline {
             steps {
                 script {
                     echo 'Waiting for MySQL to be ready...'
-                    
-                    // Retry loop to wait for MySQL to be ready
-                    sh '''
+
+                    // Get the MySQL container's IP
+                    def mysqlIP = sh(
+                        script: "docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -q --filter ancestor=mysql:latest)",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "MySQL Container IP: ${mysqlIP}"
+
+                    // Wait for MySQL to be ready
+                    sh """
                         for i in {1..10}; do
-                            mysqladmin ping -h host.docker.internal -uroot -proot --silent && break
+                            mysqladmin ping -h ${mysqlIP} -uroot -proot --silent && break
                             echo "Waiting for MySQL to be ready..."
                             sleep 5
                         done
-                    '''
+                    """
 
                     echo 'Verifying database connection...'
-                    sh '''
-                        mysql -h host.docker.internal -uroot -proot -e "SHOW DATABASES;"
-                    '''
+                    sh "mysql -h ${mysqlIP} -uroot -proot -e 'SHOW DATABASES;'"
                 }
             }
         }
