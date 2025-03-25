@@ -1,21 +1,43 @@
 pipeline {
-  agent none
-  stages {
-    stage('Back-end') {
-      agent {
-        docker { image 'maven:3.8.1-adoptopenjdk-11' }
-      }
-      steps {
-        sh 'mvn --version'
-      }
+    agent none
+
+    stages {
+        stage('Back-end') {
+            agent {
+                docker { image 'maven:3.8.1-adoptopenjdk-11' }
+            }
+            steps {
+                sh 'mvn --version'
+            }
+        }
+
+        stage('Front-end') {
+            agent {
+                docker { image 'node:16-alpine' }
+            }
+            steps {
+                sh 'node --version'  // Fixed missing closing quote
+            }
+        }
+
+        stage('Database') {
+            agent {
+                docker {
+                    image 'mysql:latest'
+                    args '-e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=testdb -p 3306:3306'
+                }
+            }
+            steps {
+                script {
+                    echo 'Waiting for MySQL to be ready...'
+                    sleep 10  // Give some time for the database to start
+
+                    echo 'Verifying database connection...'
+                    sh '''
+                        mysql -h 127.0.0.1 -uroot -proot -e "SHOW DATABASES;"
+                    '''
+                }
+            }
+        }
     }
-    stage('Front-end') {
-      agent {
-        docker { image 'node:16-alpine' }
-      }
-      steps {
-        sh 'node --version'
-      }
-    }
-  }
 }
