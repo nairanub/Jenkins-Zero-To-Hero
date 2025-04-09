@@ -54,12 +54,18 @@ pipeline {
         steps {
             withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                 sh '''
-                    BUILD_NUMBER=${BUILD_NUMBER}
-                    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
-                    git add java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
-                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                '''
+    # Mark the current workspace as a safe directory
+    git config --global --add safe.directory "$(pwd)"
+    
+    # Proceed with the rest of your script
+    git config user.email "anurag.nair@gmail.com"
+    git config user.name "Anurag Nair"
+    BUILD_NUMBER=${BUILD_NUMBER}
+    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+    git add java-maven-sonar-argocd-helm-k8s/spring-boot-app-manifests/deployment.yml
+    git commit -m "Update deployment image to version ${BUILD_NUMBER}" || echo "No changes to commit"
+    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+'''
             }
         }
     }
