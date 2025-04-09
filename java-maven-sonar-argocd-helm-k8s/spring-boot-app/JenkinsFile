@@ -14,14 +14,19 @@ pipeline {
     }
   
     stage('Build and Test') {
-      steps {
-        sh 'ls -ltr'
-        // build the project and create a JAR file
-        sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean package'
-      }
-    }
+       environment {
+    JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+    PATH = "${JAVA_HOME}/bin:${env.PATH}"
+  }
+  steps {
+    sh 'java -version' // verify correct Java version is being used
+    sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean package'
+  }
+}
     stage('Static Code Analysis') {
       environment {
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
         SONAR_URL = "http://54.166.130.138:9000/"
       }
       steps {
