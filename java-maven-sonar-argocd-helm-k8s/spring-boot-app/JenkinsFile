@@ -14,27 +14,30 @@ pipeline {
     }
   
     stage('Build and Test') {
-       environment {
-    JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-    PATH = "${JAVA_HOME}/bin:${env.PATH}"
-  }
   steps {
-    sh 'java -version' // verify correct Java version is being used
-    sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean package'
+    withEnv(["JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64", "PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:${env.PATH}"]) {
+      sh 'java -version'
+      sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean package'
+    }
   }
 }
-    stage('Static Code Analysis') {
-      environment {
-        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-        PATH = "${JAVA_HOME}/bin:${env.PATH}"
-        SONAR_URL = "http://54.166.130.138:9000/"
-      }
-      steps {
-        withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
-          sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
-        }
+
+stage('Static Code Analysis') {
+  environment {
+    SONAR_URL = "http://54.166.130.138:9000/"
+  }
+  steps {
+    withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
+      withEnv(["JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64", "PATH=/usr/lib/jvm/java-17-openjdk-amd64/bin:${env.PATH}"]) {
+        sh '''
+          java -version
+          cd java-maven-sonar-argocd-helm-k8s/spring-boot-app
+          mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}
+        '''
       }
     }
+  }
+}
     stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "nairanub/ultimate-cicd:${BUILD_NUMBER}"
