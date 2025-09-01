@@ -28,7 +28,7 @@ pipeline {
       }
       steps {
         sh 'mysql --version'
-        sh 'hello database'
+        sh 'echo hello database'
       }
     }
   }
