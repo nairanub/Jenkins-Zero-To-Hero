@@ -4,9 +4,11 @@ pipeline {
     stage('Back-end') {
       agent {
         docker { image 'maven:3.8.1-adoptopenjdk-11' }
+        
       }
       steps {
         sh 'mvn --version'
+        sh 'echo this is my backend stage'
       }
     }
 
@@ -16,6 +18,7 @@ pipeline {
       }
       steps {
         sh 'node --version'
+        sh 'echo this is my frontend-stage'
       }
     }
 
@@ -25,7 +28,7 @@ pipeline {
       }
       steps {
         sh 'mysql --version'
-      
+        sh 'hello database'
       }
     }
   }
