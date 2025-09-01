@@ -1,5 +1,5 @@
 pipeline {
-  agent none
+  agent any
   stages {
     stage('Back-end') {
       agent {
@@ -15,6 +15,13 @@ pipeline {
       }
       steps {
         sh 'node --version'
+      }
+      stage('Database') {
+      agent {
+        docker { image 'mysql:lates' }
+      }
+      steps {
+        sh 'select * from dual'
       }
     }
   }
