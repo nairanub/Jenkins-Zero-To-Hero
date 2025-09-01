@@ -9,6 +9,7 @@ pipeline {
         sh 'mvn --version'
       }
     }
+
     stage('Front-end') {
       agent {
         docker { image 'node:16-alpine' }
@@ -16,12 +17,15 @@ pipeline {
       steps {
         sh 'node --version'
       }
-      stage('Database') {
+    }
+
+    stage('Database') {
       agent {
-        docker { image 'mysql:lates' }
+        docker { image 'mysql:latest' }
       }
       steps {
-        sh 'select * from dual'
+        sh 'mysql --version'
+      
       }
     }
   }
